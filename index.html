@@ -1,0 +1,103 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Prédiction Couleur - Varex</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 2em; background: #f9f9f9; }
+    h1 { color: #444; }
+    .output { margin-top: 1em; padding: 1em; background: #fff; border: 1px solid #ddd; border-radius: 8px; }
+    input[type='text'] { width: 100%; padding: 0.5em; font-size: 1em; }
+    button { padding: 0.6em 1.2em; font-size: 1em; margin-top: 1em; }
+    .probabilities { margin-top: 0.5em; font-size: 0.9em; color: #333; }
+  </style>
+</head>
+<body>
+  <h1>Prédiction de Couleur (Varex)</h1>
+
+  <label>Historique (séparé par des virgules):</label><br>
+  <input type="text" id="historique" value="0.1,0.8,0.3,0.6">
+  <button onclick="executerPrediction()">Prédire</button>
+
+  <div class="output" id="resultat"></div>
+
+  <script>
+    const mean = arr => arr.reduce((a, b) => a + b, 0) / arr.length;
+    const stdDev = arr => {
+      const m = mean(arr);
+      return Math.sqrt(arr.reduce((sum, val) => sum + Math.pow(val - m, 2), 0) / arr.length);
+    };
+    const softmax = arr => {
+      const expArr = arr.map(x => Math.exp(x));
+      const sumExp = expArr.reduce((a, b) => a + b, 0);
+      return expArr.map(x => x / sumExp);
+    };
+    const entropy = probs => {
+      const e = -probs.reduce((sum, p) => sum + (p > 0 ? p * Math.log2(p) : 0), 0);
+      return e / Math.log2(probs.length);
+    };
+    const cosineSimilarity = (a, b) => {
+      const dot = a.reduce((sum, val, i) => sum + val * b[i], 0);
+      const normA = Math.sqrt(a.reduce((sum, val) => sum + val * val, 0));
+      const normB = Math.sqrt(b.reduce((sum, val) => sum + val * val, 0));
+      return dot / (normA * normB);
+    };
+
+    const modeles = [{
+      nom: "ModeleA",
+      exemples: [
+        { entree: [0.2, 0.7, 0.4, 0.6], sortie: "Rouge" },
+        { entree: [0.3, 0.8, 0.2, 0.5], sortie: "Bleu" },
+        { entree: [0.0, 0.9, 0.3, 0.7], sortie: "Rouge" },
+      ]
+    }];
+
+    function predictCouleur(historique, modeles) {
+      const predictions = [];
+      for (const modele of modeles) {
+        const similarites = modele.exemples.map(ex => cosineSimilarity(historique, ex.entree));
+        const probabilites = softmax(similarites);
+        const scores = {};
+        for (let i = 0; i < modele.exemples.length; i++) {
+          const label = modele.exemples[i].sortie;
+          if (!scores[label]) scores[label] = 0;
+          scores[label] += probabilites[i];
+        }
+        const total = Object.values(scores).reduce((a, b) => a + b, 0);
+        for (const k in scores) scores[k] /= total;
+        const conf = 1 - entropy(Object.values(scores));
+        predictions.push({ scores, confiance: conf });
+      }
+
+      const fusion = {};
+      let totalConfiance = 0;
+      for (const { scores, confiance } of predictions) {
+        for (const label in scores) {
+          if (!fusion[label]) fusion[label] = 0;
+          fusion[label] += scores[label] * confiance;
+        }
+        totalConfiance += confiance;
+      }
+      for (const k in fusion) fusion[k] /= totalConfiance;
+      const resultat = Object.entries(fusion).sort((a, b) => b[1] - a[1])[0];
+      return { prediction: resultat[0], probabilite: resultat[1], distribution: fusion };
+    }
+
+    function executerPrediction() {
+      const input = document.getElementById("historique").value;
+      const historique = input.split(',').map(Number);
+      const result = predictCouleur(historique, modeles);
+
+      let html = `<strong>Prédiction:</strong> ${result.prediction}<br>
+                  <strong>Probabilité:</strong> ${(result.probabilite * 100).toFixed(2)}%<br>
+                  <div class="probabilities"><strong>Distribution:</strong><br>`;
+      for (const [label, prob] of Object.entries(result.distribution)) {
+        html += `${label}: ${(prob * 100).toFixed(2)}%<br>`;
+      }
+      html += `</div>`;
+      document.getElementById("resultat").innerHTML = html;
+    }
+  </script>
+</body>
+</html>
