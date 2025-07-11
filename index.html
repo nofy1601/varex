@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -16,18 +15,14 @@
 <body>
   <h1>Prédiction de Couleur (Varex)</h1>
 
-  <label>Historique (séparé par des virgules):</label><br>
-  <input type="text" id="historique" value="0.1,0.8,0.3,0.6">
+  <label>Historique (format : 1.2x,3.4x,...):</label><br>
+  <input type="text" id="historique" value="0.1x,0.8x,0.3x,0.6x">
   <button onclick="executerPrediction()">Prédire</button>
 
   <div class="output" id="resultat"></div>
 
   <script>
     const mean = arr => arr.reduce((a, b) => a + b, 0) / arr.length;
-    const stdDev = arr => {
-      const m = mean(arr);
-      return Math.sqrt(arr.reduce((sum, val) => sum + Math.pow(val - m, 2), 0) / arr.length);
-    };
     const softmax = arr => {
       const expArr = arr.map(x => Math.exp(x));
       const sumExp = expArr.reduce((a, b) => a + b, 0);
@@ -86,16 +81,20 @@
 
     function executerPrediction() {
       const input = document.getElementById("historique").value;
-      const historique = input.split(',').map(Number);
+      const historique = input
+        .split(',')
+        .map(s => parseFloat(s.replace(/x$/i, '')))
+        .filter(n => !isNaN(n));
+
       const result = predictCouleur(historique, modeles);
 
       let html = `<strong>Prédiction:</strong> ${result.prediction}<br>
                   <strong>Probabilité:</strong> ${(result.probabilite * 100).toFixed(2)}%<br>
                   <div class="probabilities"><strong>Distribution:</strong><br>`;
       for (const [label, prob] of Object.entries(result.distribution)) {
-        html += `${label}: ${(prob * 100).toFixed(2)}%<br>`;
+        html += ${label}: ${(prob * 100).toFixed(2)}%<br>;
       }
-      html += `</div>`;
+      html += </div>;
       document.getElementById("resultat").innerHTML = html;
     }
   </script>
