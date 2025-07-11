@@ -1,14 +1,19 @@
 # Varex - Prédiction de Couleur
 
-Ce projet contient une interface web simple basée sur JavaScript pour prédire une couleur en fonction d'un vecteur d'entrée.
+Interface web interactive de prédiction basée sur des vecteurs historiques.
+
+### ✅ Format attendu
+Historique sous la forme :.
 
 ### 📦 Contenu :
-- `index.html` — Interface web prête à l'emploi
-- `.nojekyll` — Nécessaire pour que GitHub Pages traite correctement le JS/HTML sans Jekyll
-- `README.md` — Ce fichier
+- index.html — Application HTML/JS autonome
+- .nojekyll — Désactive Jekyll pour GitHub Pages
+- README.md — Description du projet
+
 
 ### 🌐 Déploiement GitHub Pages
-1. Créez un dépôt GitHub public
-2. Ajoutez ces fichiers (`index.html`, `.nojekyll`, `README.md`)
-3. Activez Pages dans Settings → Pages → source: `main`, dossier: `/ (root)`
-4. Le site sera accessible à l'adresse `https://<votre-utilisateur>.github.io/<nom-du-depot>/`
+1. Créez un dépôt public sur GitHub
+2. Glissez ces fichiers dans la racine du dépôt
+3. Allez dans Settings > Pages et choisissez : Branch = main, Folder = / (root)
+4. Le site sera publié automatiquement à https://<utilisateur>.github.io/<dépôt>/
+`
